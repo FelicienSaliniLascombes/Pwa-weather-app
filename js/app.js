@@ -1,21 +1,15 @@
 const API_KEY = "5cf1dc15a70484a5b647585d5b2f8522";
 const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
-// Sélecteurs
 const searchInput = document.getElementById("city-input");
 const searchBtn = document.getElementById("search-btn");
 const searchResult = document.getElementById("search-result");
 const europeanContainer = document.getElementById("european-capitals");
 
-/* ==========================================
-   1. FONCTION DE RENDU UNIQUE
-   ========================================== */
-// Cette fonction garantit que l'affichage est identique partout
 function generateWeatherCardHTML(data, isFavoriteView = false) {
   const { name, main, weather, wind } = data;
   const iconUrl = `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`;
 
-  // Le bouton s'adapte selon la vue (Recherche ou Favoris)
   const actionButton = isFavoriteView
     ? `<button onclick="removeFavorite('${name}')" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">🗑️ Supprimer</button>`
     : `<button class="fav-btn" onclick="handleFavorite('${name}')" style="background-color: var(--accent); border:none; padding:10px; border-radius:8px; cursor:pointer;">⭐ Ajouter aux favoris</button>`;
@@ -37,10 +31,6 @@ function generateWeatherCardHTML(data, isFavoriteView = false) {
     `;
 }
 
-/* ==========================================
-   2. LOGIQUE API & RECHERCHE
-   ========================================== */
-
 async function fetchWeather(city) {
   searchResult.innerHTML = '<p class="loading">Chargement...</p>';
   const url = `${BASE_URL}?q=${city}&appid=${API_KEY}&units=metric&lang=fr`;
@@ -50,33 +40,24 @@ async function fetchWeather(city) {
     if (!response.ok) throw new Error("Ville non trouvée");
     const data = await response.json();
 
-    // Affiche la carte avec toutes les infos
     searchResult.innerHTML = generateWeatherCardHTML(data, false);
   } catch (error) {
-    searchResult.innerHTML = `<p style="color:red">Erreur : ${error.message}</p>`;
+    searchResult.innerHTML = `<p style="color:red">Erreur : Connexion au serveur météo impossible.</p>`;
   }
 }
 
-/* ==========================================
-   3. NAVIGATION & VUES
-   ========================================== */
-
 function switchView(viewId, activeBtnId) {
-  // Masquer toutes les sections
   document
     .querySelectorAll("main > div")
     .forEach((div) => div.classList.add("hidden"));
-  // Afficher la section demandée
   document.getElementById(viewId).classList.remove("hidden");
 
-  // Gérer l'état actif des boutons de la barre de navigation
   document
     .querySelectorAll(".tab-btn")
     .forEach((btn) => btn.classList.remove("active"));
   document.getElementById(activeBtnId).classList.add("active");
 }
 
-// Accueil : Affichage des capitales européennes
 const capitals = ["Paris", "London", "Berlin", "Madrid", "Rome", "Zurich"];
 
 async function loadHomeWeather() {
@@ -102,10 +83,6 @@ async function loadHomeWeather() {
   europeanContainer.innerHTML = html;
 }
 
-/* ==========================================
-   4. GESTION DES FAVORIS (ÉCRITURE)
-   ========================================== */
-
 async function handleFavorite(cityName) {
   const db = await dbPromise;
   try {
@@ -127,11 +104,6 @@ async function handleFavorite(cityName) {
   }
 }
 
-/* ==========================================
-   5. ÉVÉNEMENTS & RÉSEAU
-   ========================================== */
-
-// Navigation clics
 document.getElementById("nav-home").addEventListener("click", () => {
   switchView("view-home", "nav-home");
   loadHomeWeather();
@@ -141,10 +113,6 @@ document.getElementById("nav-search").addEventListener("click", () => {
   switchView("view-search", "nav-search");
 });
 
-// L'écouteur pour les favoris est géré dans favorites.js,
-// mais assurez-vous que switchView est bien appelé.
-
-// Recherche clics
 searchBtn.addEventListener("click", () => {
   const city = searchInput.value.trim();
   if (city) fetchWeather(city);
@@ -157,7 +125,6 @@ searchInput.addEventListener("keypress", (e) => {
   }
 });
 
-// Gestion du bandeau Hors-ligne
 function updateNetworkStatus() {
   const banner = document.getElementById("offline-banner");
   if (navigator.onLine) {
@@ -170,37 +137,23 @@ function updateNetworkStatus() {
 window.addEventListener("online", updateNetworkStatus);
 window.addEventListener("offline", updateNetworkStatus);
 
-/* ==========================================
-   6. LANCEMENT
-   ========================================== */
-
-// Enregistrement du Service Worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js");
   });
 }
 
-/* ==========================================
-   LOGIQUE D'INSTALLATION (A2HS)
-   ========================================== */
 let deferredPrompt;
 const installBtn = document.getElementById("install-btn");
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  // Empêche Chrome 67 et les versions antérieures d'afficher automatiquement la bannière
   e.preventDefault();
-  // Stocke l'événement pour qu'il puisse être déclenché plus tard
   deferredPrompt = e;
-  // Affiche le bouton d'installation
   installBtn.style.display = "inline-block";
 
   installBtn.addEventListener("click", () => {
-    // Cache le bouton
     installBtn.style.display = "none";
-    // Affiche la bannière d'installation
     deferredPrompt.prompt();
-    // Attends la réponse de l'utilisateur
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === "accepted") {
         console.log("L utilisateur a accepté l installation");
@@ -212,7 +165,6 @@ window.addEventListener("beforeinstallprompt", (e) => {
   });
 });
 
-// Cache le bouton une fois installé
 window.addEventListener("appinstalled", () => {
   console.log("Nimbus a été installée");
   installBtn.style.display = "none";
@@ -226,12 +178,10 @@ function showToast(message) {
 
   container.appendChild(toast);
 
-  // On retire l'élément du DOM après l'animation (3 secondes)
   setTimeout(() => {
     toast.remove();
   }, 3000);
 }
 
-// Initialisation au chargement
 updateNetworkStatus();
 loadHomeWeather();
