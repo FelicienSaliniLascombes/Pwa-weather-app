@@ -1,0 +1,23 @@
+{
+  "name": "Nimbus",
+  "short_name": "Nimbus",
+  "theme_color": "#0d1f2d",
+  "background_color": "#fae1df",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/index.html",
+  "description": "Meilleur application météo en temps réel",
+  "icons": [
+    {
+      "src": "/images/icons/logo_weather_app_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icons/logo_weather_app_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
